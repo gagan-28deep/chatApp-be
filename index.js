@@ -1,8 +1,8 @@
-import { app } from "./app.js";
+import { app } from "./src/app.js";
 import dotenv from "dotenv";
 
 dotenv.config({
-  path: "../.env",
+  path: "./.env",
 });
 
 app.listen(3000, () => {
