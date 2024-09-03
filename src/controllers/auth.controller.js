@@ -1,12 +1,16 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
-
+import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 
 import prisma from "../db/db.js";
 
 import generateToken from "../utils/generateToken.js";
+
+dotenv.config({
+  path: "../../.env",
+});
 
 // Error handling response
 const handleErrorResponse = (res, error) => {
@@ -116,10 +120,25 @@ export const signIn = asyncHandler(async (req, res) => {
     const error = new ApiError(400, "Invalid credentials");
     return handleErrorResponse(res, error);
   }
-  generateToken(user?.id, res);
+  const { accessToken, refreshToken } = await generateToken(user?.id, res);
+
+  const loggedInUser = await prisma.chatUser.update({
+    where: {
+      id: user?.id,
+    },
+    data: {
+      refreshToken,
+    },
+  });
   res
     .status(200)
-    .json(new ApiResponse(200, user, "User logged in successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        { loggedInUser, accessToken, refreshToken },
+        "User logged in successfully"
+      )
+    );
 });
 
 // Get User
@@ -140,13 +159,61 @@ export const getUser = asyncHandler(async (req, res) => {
 // Logout
 export const logout = asyncHandler(async (req, res) => {
   res.clearCookie("jwt");
+  res.clearCookie("refreshToken");
+  const user = prisma.chatUser.update({
+    where: {
+      id: req.user.id,
+    },
+    data: {
+      refreshToken: null,
+    },
+  });
   res
     .status(200)
-    .json(new ApiResponse(200, null, "User logged out successfully"));
+    .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
 // Get all users
 export const getAllUsers = asyncHandler(async (req, res) => {
   const users = await prisma.chatUser.findMany();
   res.status(200).json(new ApiResponse(200, users, "Users found successfully"));
+});
+
+// Generate Refresh Token
+export const generateRefreshToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+
+  if (!incomingRefreshToken) {
+    const error = new ApiError(401, "Unauthorized");
+    return handleErrorResponse(res, error);
+  }
+  try {
+    const decodedToken = await jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN
+    );
+    const user = await prisma.chatUser.findUnique({
+      where: {
+        id: decodedToken?.userId,
+      },
+    });
+    if (!user) {
+      const error = new ApiError(401, "Invalid token");
+      return handleErrorResponse(res, error);
+    }
+    const { accessToken, refreshToken } = await generateToken(user?.id, res);
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken },
+          "Refresh token generated successfully"
+        )
+      );
+  } catch (err) {
+    const error = new ApiError(401, "Unauthorized request");
+    return handleErrorResponse(res, error);
+  }
 });
