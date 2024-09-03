@@ -18,7 +18,8 @@ const handleErrorResponse = (res, error) => {
 
 // Sign Up
 export const signUp = asyncHandler(async (req, res) => {
-  const { username, fullName, password, confirmPassword, gender } = req.body;
+  const { username, fullName, password, confirmPassword, gender, email } =
+    req.body;
 
   if (!username || !fullName || !password || !confirmPassword || !gender) {
     const error = new ApiError(400, "All fields are required");
@@ -29,9 +30,17 @@ export const signUp = asyncHandler(async (req, res) => {
     return handleErrorResponse(res, error);
   }
 
-  const existingUser = await prisma.chatUser.findUnique({
+  // Cehck if the existing user exists with same username or email
+  const existingUser = await prisma.chatUser.findFirst({
     where: {
-      username,
+      OR: [
+        {
+          username,
+        },
+        {
+          email,
+        },
+      ],
     },
   });
   if (existingUser) {
@@ -49,6 +58,7 @@ export const signUp = asyncHandler(async (req, res) => {
     data: {
       fullname: fullName,
       username,
+      email,
       password: hashedPassword,
       gender,
       profilePic: gender === "male" ? boyProfilePic : girlProfilePic,
@@ -62,10 +72,26 @@ export const signUp = asyncHandler(async (req, res) => {
 
   if (newUser) {
     // generate a access token
-    generateToken(newUser?.id, res);
+    const { accessToken, refreshToken } = await generateToken(newUser?.id, res);
+    // Set the refresh Token in the database
+    const loggedInUser = await prisma.chatUser.update({
+      where: {
+        id: newUser?.id,
+      },
+      data: {
+        refreshToken,
+      },
+    });
+
     res
       .status(200)
-      .json(new ApiResponse(200, newUser, "User created successfully"));
+      .json(
+        new ApiResponse(
+          200,
+          { loggedInUser, accessToken, refreshToken },
+          "User created successfully"
+        )
+      );
   }
 });
 
