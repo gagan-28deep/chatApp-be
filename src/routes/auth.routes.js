@@ -16,7 +16,7 @@ router.route("/getAll").get(getAllUsers);
 router.route("/refresh-token").post(generateRefreshToken);
 
 // Protected routes
-router.route("/").get(authMiddleware, getUser);
-router.route("/").post(authMiddleware, logout);
+router.route("/me").get(authMiddleware, getUser);
+router.route("/logout").post(authMiddleware, logout);
 
 export default router;

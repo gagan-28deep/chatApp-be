@@ -8,7 +8,9 @@ dotenv.config({
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
+    // const token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
+    const token =
+      req.cookies.jwt || req.headers?.authorization
     if (!token) {
       return res.status(401).json({ message: "Unauthorized Request" });
     }
@@ -17,7 +19,7 @@ const authMiddleware = async (req, res, next) => {
     if (!decodeToken) {
       return res.status(401).json({ message: "Unauthorized Request" });
     }
-    const user = await prisma.user.findUnique({
+    const user = await prisma.chatUser.findUnique({
       where: {
         id: decodeToken.userId,
       },
