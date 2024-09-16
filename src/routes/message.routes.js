@@ -10,8 +10,8 @@ const router = express.Router();
 
 router.use(authMiddleware);
 
-router.route("/conversations", getUsersForSidebar);
-router.route("/send/:id", sendMessage);
-router.route("/get/:id", getMessage);
+router.route("/conversations").get(getUsersForSidebar);
+router.route("/send/:id").post(sendMessage);
+router.route("/get/:id").get(getMessage);
 
 export default router;

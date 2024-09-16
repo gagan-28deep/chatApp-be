@@ -94,7 +94,7 @@ export const getMessage = asyncHandler(async (req, res) => {
 
 export const getUsersForSidebar = asyncHandler(async (req, res) => {
   const authUserId = req.user.id;
-  const users = await prisma.user.findMany({
+  const users = await prisma.chatUser.findMany({
     where: {
       id: {
         not: authUserId,
