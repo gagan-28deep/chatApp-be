@@ -14,8 +14,8 @@ dotenv.config({
 
 // Error handling response
 const handleErrorResponse = (res, error) => {
-  return res.status(error?.statusCode).json({
-    statusCode: error.statusCode,
+  return res.status(error?.status).json({
+    statusCode: error.status,
     message: error?.message,
   });
 };

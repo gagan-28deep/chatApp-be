@@ -4,8 +4,8 @@ import ApiResponse from "../utils/ApiResponse.js";
 import prisma from "../db/db.js";
 
 const handleErrorResponse = (res, error) => {
-  return res.status(error?.statusCode).json({
-    statusCode: error.statusCode,
+  return res.status(error?.status).json({
+    statusCode: error.status,
     message: error?.message,
   });
 };
@@ -38,7 +38,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
     data: {
       conversationId: conversation.id,
       senderId,
-      message,
+      body : message,
     },
   });
   if (newMessage) {
