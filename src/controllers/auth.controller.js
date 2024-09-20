@@ -48,7 +48,7 @@ export const signUp = asyncHandler(async (req, res) => {
     },
   });
   if (existingUser) {
-    const error = new ApiError(400, "Username already exists");
+    const error = new ApiError(400, "Username or email already exists");
     return handleErrorResponse(res, error);
   }
 
@@ -106,9 +106,16 @@ export const signIn = asyncHandler(async (req, res) => {
     const error = new ApiError(400, "All fields are required");
     return handleErrorResponse(res, error);
   }
-  const user = await prisma.chatUser.findUnique({
+  const user = await prisma.chatUser.findFirst({
     where: {
-      username,
+      OR : [
+        {
+          username
+        },
+        {
+          email: username
+        }
+      ]
     },
   });
   if (!user) {
