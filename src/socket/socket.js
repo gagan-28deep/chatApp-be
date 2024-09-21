@@ -18,7 +18,7 @@ app.use("/api/v1/messages", messageRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "https://chat-app-fe-blond.vercel.app/",
   },
 });
 
