@@ -1,4 +1,5 @@
 import { app } from "./src/app.js";
+import {server} from "./src/socket/socket.js"
 import dotenv from "dotenv";
 
 dotenv.config({
@@ -6,6 +7,6 @@ dotenv.config({
 });
 
 const port = process.env.PORT || 8000;
-app.listen(port, () => {
+server.listen(port, () => {
   console.log("Server started on port 8000");
 });
