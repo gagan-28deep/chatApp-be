@@ -9,7 +9,9 @@ const app = express();
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+  origin: "https://chat-app-fe-blond.vercel.app",
+}));
 
 
 app.use("/api/v1/auth", authRoutes);
@@ -18,7 +20,8 @@ app.use("/api/v1/messages", messageRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://chat-app-fe-blond.vercel.app/",
+    origin: "https://chat-app-fe-blond.vercel.app",
+    methods: ["GET", "POST"],
   },
 });
 
