@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import prisma from "../db/db.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 const handleErrorResponse = (res, error) => {
   return res.status(error?.status).json({
@@ -54,6 +55,12 @@ export const sendMessage = asyncHandler(async (req, res) => {
         },
       },
     });
+  }
+  
+  // Connect socket io for real time messages
+  const receiverSocketId = getReceiverSocketId(recieverId);
+  if(receiverSocketId){
+    io.to(receiverSocketId).emit("newMessage", newMessage);
   }
   res
     .status(200)
